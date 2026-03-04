@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://wh5an774241u"]
+
+[ext_resource type="Script" uid="uid://dgppwf11fshsp" path="res://level_2d_top_down.gd" id="1_tv8y1"]
+
+[node name="Level2dTopDown" type="Node2D" unique_id=655948461]
+script = ExtResource("1_tv8y1")
+level_path = "res://levels/level_01.txt"
