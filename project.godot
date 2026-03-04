@@ -13,6 +13,7 @@ config_version=5
 config/name="learn-godot"
 run/main_scene="uid://wh5an774241u"
 config/features=PackedStringArray("4.6", "Forward Plus")
+boot_splash/show_image=false
 config/icon="res://icon.svg"
 
 [physics]

@@ -82,5 +82,5 @@ func _process(delta):
 		move.x += 1
 
 	if move != Vector2.ZERO:
-		move = move.normalized() * tile_size  # mover por tamaño de tile
+		move = move.normalized() #* tile_size  # mover por tamaño de tile
 		player.position += move
