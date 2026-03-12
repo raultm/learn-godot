@@ -5,6 +5,7 @@ extends Node2D
 
 var grid := []
 var player : CharacterBody2D  # cambiar a CharacterBody2D
+var file_dialog : FileDialog
 
 func _ready():
 	if level_path == "":
@@ -13,6 +14,27 @@ func _ready():
 
 	load_level(level_path)
 	build_level()
+
+	# Crear el FileDialog
+	file_dialog = FileDialog.new()
+	file_dialog.filters = ["*.txt"]
+	file_dialog.file_selected.connect(_on_file_selected)
+	add_child(file_dialog)
+
+func _input(event):
+	if event is InputEventKey and event.keycode == KEY_L and event.pressed:
+		file_dialog.popup()
+
+func _on_file_selected(path):
+	clear_level()
+	load_level(path)
+	build_level()
+
+func clear_level():
+	for child in get_children():
+		if child != file_dialog:
+			child.queue_free()
+	player = null  # resetear el player
 
 func load_level(path):
 	if not FileAccess.file_exists(path):
