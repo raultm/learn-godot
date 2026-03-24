@@ -1,0 +1,147 @@
+extends Node3D
+
+@export var level_path : String
+@export var tile_size : int = 2
+const DEFAULT_LEVEL := "res://levels/level_01.txt"
+
+var grid := []
+var player : CharacterBody3D
+var file_dialog : FileDialog
+
+func _ready() -> void:
+	set_process(true)
+	set_physics_process(true)
+
+	if level_path == "" or level_path == null:
+		level_path = DEFAULT_LEVEL
+
+	print("3D: cargando nivel ", level_path)
+
+	if not load_level(level_path):
+		push_error("No se pudo cargar el nivel: %s" % level_path)
+		return
+
+	print("3D: grid", grid)
+	build_level()
+
+	# FileDialog para cambiar nivel con tecla L
+	file_dialog = FileDialog.new()
+	file_dialog.filters = ["*.txt"]
+	file_dialog.file_selected.connect(_on_file_selected)
+	add_child(file_dialog)
+
+func _process(delta: float) -> void:
+	if player == null:
+		return
+
+	var velocity = Vector3.ZERO
+	if Input.is_action_pressed("ui_up"):
+		velocity.z -= 1
+	if Input.is_action_pressed("ui_down"):
+		velocity.z += 1
+	if Input.is_action_pressed("ui_left"):
+		velocity.x -= 1
+	if Input.is_action_pressed("ui_right"):
+		velocity.x += 1
+
+	if velocity != Vector3.ZERO:
+		velocity = velocity.normalized() * 10
+	player.velocity = velocity
+	player.move_and_slide()
+
+func _input(event):
+	if event is InputEventKey and event.keycode == KEY_L and event.pressed:
+		file_dialog.popup()
+
+func _on_file_selected(path: String) -> void:
+	clear_level()
+	level_path = path
+	if load_level(path):
+		build_level()
+
+func clear_level() -> void:
+	for child in get_children():
+		if child != file_dialog:
+			child.queue_free()
+	player = null
+
+func load_level(path: String) -> bool:
+	if not FileAccess.file_exists(path):
+		push_error("No existe: " + path)
+		return false
+
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		push_error("No se pudo abrir: " + path)
+		return false
+
+	grid.clear()
+	while not file.eof_reached():
+		grid.append(file.get_line())
+	file.close()
+	return true
+
+func build_level() -> void:
+	for y in range(grid.size()):
+		var line = grid[y]
+		for x in range(line.length()):
+			var symbol = line[x]
+			var world_pos = Vector3(x * tile_size, 0, y * tile_size)
+			match symbol:
+				"#":
+					spawn_3d_wall(world_pos)
+				".":
+					spawn_3d_floor(world_pos)
+				"P":
+					spawn_3d_floor(world_pos)
+					spawn_player(world_pos)
+
+func spawn_3d_floor(pos: Vector3) -> void:
+	var mesh_instance = MeshInstance3D.new()
+	var mesh = PlaneMesh.new()
+	mesh.size = Vector2(tile_size, tile_size)
+	mesh_instance.mesh = mesh
+	mesh_instance.position = pos
+	add_child(mesh_instance)
+
+func spawn_3d_wall(pos: Vector3) -> void:
+	var body = StaticBody3D.new()
+	var collision = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = Vector3(tile_size, tile_size, tile_size)
+	collision.shape = shape
+	body.position = pos + Vector3(0, tile_size * 0.5, 0)
+	body.add_child(collision)
+
+	var mesh_instance = MeshInstance3D.new()
+	var mesh = BoxMesh.new()
+	mesh.size = Vector3(tile_size, tile_size, tile_size)
+	mesh_instance.mesh = mesh
+	mesh_instance.position = pos + Vector3(0, tile_size * 0.5, 0)
+	body.add_child(mesh_instance)
+
+	add_child(body)
+
+func spawn_player(pos: Vector3) -> void:
+	player = CharacterBody3D.new()
+	var collision = CollisionShape3D.new()
+	var shape = CapsuleShape3D.new()
+	shape.radius = tile_size * 0.3
+	shape.height = tile_size * 0.8
+	collision.shape = shape
+	player.add_child(collision)
+
+	var mesh_instance = MeshInstance3D.new()
+	var mesh = CapsuleMesh.new()
+	mesh.radius = tile_size * 0.3
+	mesh.height = tile_size * 0.8
+	mesh_instance.mesh = mesh
+	player.add_child(mesh_instance)
+
+	player.position = pos + Vector3(0, tile_size * 0.5, 0)
+
+	var camera = Camera3D.new()
+	camera.position = Vector3(0, tile_size * 2, tile_size * 2)
+	player.add_child(camera)
+
+	add_child(player)
