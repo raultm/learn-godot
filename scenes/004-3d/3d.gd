@@ -7,6 +7,7 @@ const DEFAULT_LEVEL := "res://levels/level_01.txt"
 var grid := []
 var player : CharacterBody3D
 var file_dialog : FileDialog
+var canvas_layer : CanvasLayer
 
 func _ready() -> void:
 	set_process(true)
@@ -29,6 +30,15 @@ func _ready() -> void:
 	file_dialog.filters = ["*.txt"]
 	file_dialog.file_selected.connect(_on_file_selected)
 	add_child(file_dialog)
+
+	# Botón para volver al menú (en CanvasLayer para 3D)
+	self.canvas_layer = CanvasLayer.new()
+	var back_button = Button.new()
+	back_button.text = "Volver al Menú"
+	back_button.position = Vector2(10, 10)
+	back_button.connect("pressed", Callable(self, "_on_back_to_menu"))
+	self.canvas_layer.add_child(back_button)
+	add_child(self.canvas_layer)
 
 func _process(delta: float) -> void:
 	if player == null:
@@ -61,7 +71,7 @@ func _on_file_selected(path: String) -> void:
 
 func clear_level() -> void:
 	for child in get_children():
-		if child != file_dialog:
+		if child != file_dialog and child != canvas_layer:
 			child.queue_free()
 	player = null
 
@@ -145,3 +155,6 @@ func spawn_player(pos: Vector3) -> void:
 	player.add_child(camera)
 
 	add_child(player)
+
+func _on_back_to_menu() -> void:
+	get_tree().change_scene_to_file("res://scenes/001-menu/menu.tscn")
