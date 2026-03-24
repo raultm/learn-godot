@@ -49,9 +49,8 @@ func _ready() -> void:
 		return
 
 	all_scenes = _sort_scene_path_list(all_scenes)
-	max_unlocked = _load_progress()
-	if max_unlocked >= all_scenes.size():
-		max_unlocked = all_scenes.size() - 1
+	# Modo vista de camino estático: no desbloqueos necesarios
+	max_unlocked = all_scenes.size() - 1
 
 	_update_progress_info()
 	_render_path_line()
@@ -81,18 +80,13 @@ func _find_all_scene_files(dir_path: String) -> Array:
 	return result
 
 func _sort_scene_path_list(list_paths: Array) -> Array:
-	list_paths.sort_custom(Callable(self, "_scene_path_cmp"))
+	# Orden por ruta completa para respetar prefijos 001-, 002-, 003- en carpetas
+	list_paths.sort()
 	return list_paths
 
+# Ya no hace falta comparator custom
 func _scene_path_cmp(a, b):
-	var a_name = a.get_file().get_basename()
-	var b_name = b.get_file().get_basename()
-	var a_key = _extract_order_key(a_name)
-	var b_key = _extract_order_key(b_name)
-	if a_key != b_key:
-		return a_key - b_key
-	return a_name.casecmp_to(b_name)
-
+	return 0
 func _extract_order_key(name: String) -> int:
 	var digits = ""
 	for c in name:
@@ -124,9 +118,8 @@ func _render_path_line() -> void:
 		child.queue_free()
 	for i in range(all_scenes.size()):
 		var dot = Label.new()
-		var completed = i <= max_unlocked
 		dot.text = "●"
-		# dot.add_theme_color_override("font_color", completed ? Color(0.2, 0.8, 0.4) : Color(0.6, 0.6, 0.6))
+		dot.add_theme_color_override("font_color", Color(0.2, 0.8, 0.4))
 		dot.add_theme_font_size_override("font_size", 22)
 		path_container.add_child(dot)
 
@@ -146,7 +139,7 @@ func _render_steps_list() -> void:
 		var button = Button.new()
 		button.text = "%d. %s" % [i + 1, _friendly_scene_name(scene_path)]
 		button.toggle_mode = false
-		button.disabled = i > max_unlocked
+		button.disabled = false  # siempre navegable
 		var cb = Callable(self, "_on_scene_button_pressed").bind(scene_path, i)
 		button.connect("pressed", cb)
 		steps_container.add_child(button)

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dcflfgumwy6gw"]
+
+[ext_resource type="Script" uid="uid://2d_isometric_script" path="res://scenes/003-2d-isometric/2d_isometric.gd" id=1]
+
+[node name="2dIsometric" type="Node2D" unique_id=198374111]
+script = ExtResource(1)
