@@ -2,17 +2,20 @@ extends Node2D
 
 @export var level_path : String
 @export var tile_size : int = 32
+const DEFAULT_LEVEL := "res://levels/level_01.txt"
 
 var grid := []
 var player : CharacterBody2D  # cambiar a CharacterBody2D
 var file_dialog : FileDialog
 
 func _ready():
-	if level_path == "":
-		push_error("No hay level_path definido")
+	if level_path == "" or level_path == null:
+		level_path = DEFAULT_LEVEL
+
+	if not load_level(level_path):
+		push_error("No se pudo cargar el nivel: %s" % level_path)
 		return
 
-	load_level(level_path)
 	build_level()
 
 	# Crear el FileDialog
@@ -36,18 +39,23 @@ func clear_level():
 			child.queue_free()
 	player = null  # resetear el player
 
-func load_level(path):
+func load_level(path: String) -> bool:
 	if not FileAccess.file_exists(path):
 		push_error("No existe: " + path)
-		return
+		return false
 
 	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		push_error("No se pudo abrir: " + path)
+		return false
+
 	grid.clear()
 
 	while not file.eof_reached():
 		grid.append(file.get_line())
 
 	file.close()
+	return true
 
 func build_level():
 	for y in range(grid.size()):
@@ -92,20 +100,41 @@ func spawn_floor(pos):
 
 func spawn_player(pos):
 	player = CharacterBody2D.new()
+
 	var collision = CollisionShape2D.new()
 	var shape = RectangleShape2D.new()
 	shape.size = Vector2(tile_size, tile_size)
 	collision.shape = shape
 	player.add_child(collision)
-	
+
 	var rect = ColorRect.new()
 	rect.color = Color.GREEN
 	rect.size = Vector2(tile_size, tile_size)
 	rect.position = -Vector2(tile_size/2, tile_size/2)
 	player.add_child(rect)
-	
+
 	player.position = pos + Vector2(tile_size/2, tile_size/2)
-	player.z_index = 10 
+	player.z_index = 10
+
+	# Cámara
+	var camera = Camera2D.new()
+	camera.enabled = true
+
+	# Activar zona muerta
+	camera.drag_horizontal_enabled = true
+	camera.drag_vertical_enabled = true
+
+	# Tamaño de la zona donde el jugador puede moverse sin mover la cámara
+	camera.drag_left_margin = 0.2
+	camera.drag_right_margin = 0.2
+	camera.drag_top_margin = 0.2
+	camera.drag_bottom_margin = 0.2
+
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = 5
+
+	player.add_child(camera)
+
 	add_child(player)
 	
 func _process(delta):

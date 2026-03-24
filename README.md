@@ -27,8 +27,8 @@
 ### 2.1 Primer acercamiento
 
 1.  Preparar Entorno
-    1. Crear carpeta `res://levels/`
-    2. Crear archivo `res://levels/level_01.txt`
+	1. Crear carpeta `res://levels/`
+	2. Crear archivo `res://levels/level_01.txt`
 ```
 ########
 #......#
@@ -39,9 +39,9 @@
 `#` pared, `.` suelo, `P` jugador
 
 2.  Escena que pinta el nivel
-    1. Crear Escena `Level2dTopDown.tscn` (2d Vista desde arriba)
-    2. Estructura `Node2D`
-    3. Añadir script
+	1. Crear Escena `Level2dTopDown.tscn` (2d Vista desde arriba)
+	2. Estructura `Node2D`
+	3. Añadir script
 
 3. Script funcional
 ```
@@ -113,7 +113,7 @@ func spawn_player(pos):
 ```
 
 4. Poner escena como la principal y arrancar proyecto
-    1. En el nodo entre las propiedades modificar `level_path` con contenido `res://levels/level_01.txt`
-    2. Poner escena como principal `Proyecto -> Configuracion del proyecto - Aplicacion - Ejecutar - Escena Principal`
+	1. En el nodo entre las propiedades modificar `level_path` con contenido `res://levels/level_01.txt`
+	2. Poner escena como principal `Proyecto -> Configuracion del proyecto - Aplicacion - Ejecutar - Escena Principal`
 
 5. Ejecutar. MAJIA!

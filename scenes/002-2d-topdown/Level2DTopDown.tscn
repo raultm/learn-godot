@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://wh5an774241u"]
+
+[ext_resource type="Script" uid="uid://bfw13fmebvca4" path="res://scenes/002-2d-topdown/level_2d_top_down.gd" id="1_ovlv5"]
+
+[node name="Level2dTopDown" type="Node2D" unique_id=655948461]
+script = ExtResource("1_ovlv5")
