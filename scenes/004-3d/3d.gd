@@ -187,4 +187,5 @@ func spawn_player(pos: Vector3) -> void:
 	add_child(player)
 
 func _on_back_to_menu() -> void:
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	get_tree().change_scene_to_file("res://scenes/001-menu/menu.tscn")
