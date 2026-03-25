@@ -8,6 +8,9 @@ var grid := []
 var player : CharacterBody3D
 var file_dialog : FileDialog
 var canvas_layer : CanvasLayer
+var camera_rotation = Vector2(0, 0)
+var mouse_sensitivity = 0.1
+var pivot : Node3D
 
 func _ready() -> void:
 	set_process(true)
@@ -40,28 +43,51 @@ func _ready() -> void:
 	self.canvas_layer.add_child(back_button)
 	add_child(self.canvas_layer)
 
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
 func _process(delta: float) -> void:
 	if player == null:
 		return
 
-	var velocity = Vector3.ZERO
+	var input_dir = Vector2.ZERO
 	if Input.is_action_pressed("ui_up"):
-		velocity.z -= 1
+		input_dir.y += 1
 	if Input.is_action_pressed("ui_down"):
-		velocity.z += 1
+		input_dir.y -= 1
 	if Input.is_action_pressed("ui_left"):
-		velocity.x -= 1
+		input_dir.x -= 1
 	if Input.is_action_pressed("ui_right"):
-		velocity.x += 1
+		input_dir.x += 1
 
-	if velocity != Vector3.ZERO:
-		velocity = velocity.normalized() * 10
-	player.velocity = velocity
+	if input_dir != Vector2.ZERO:
+		input_dir = input_dir.normalized()
+
+		# Calcular dirección forward y right basada en la rotación de la cámara
+		var forward = Vector3(0, 0, -1).rotated(Vector3.UP, deg_to_rad(camera_rotation.x))
+		var right = Vector3(1, 0, 0).rotated(Vector3.UP, deg_to_rad(camera_rotation.x))
+
+		var velocity = (forward * input_dir.y + right * input_dir.x) * 10
+		player.velocity = velocity
+	else:
+		player.velocity = Vector3.ZERO
+
 	player.move_and_slide()
+
+	if pivot:
+		pivot.rotation_degrees.y = camera_rotation.x
+		pivot.rotation_degrees.x = camera_rotation.y
 
 func _input(event):
 	if event is InputEventKey and event.keycode == KEY_L and event.pressed:
 		file_dialog.popup()
+	elif event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	elif event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		camera_rotation.x -= event.relative.x * mouse_sensitivity
+		camera_rotation.y -= event.relative.y * mouse_sensitivity
+		camera_rotation.y = clamp(camera_rotation.y, -90, 90)
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and Input.get_mouse_mode() == Input.MOUSE_MODE_VISIBLE:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _on_file_selected(path: String) -> void:
 	clear_level()
@@ -150,9 +176,13 @@ func spawn_player(pos: Vector3) -> void:
 
 	player.position = pos + Vector3(0, tile_size * 0.5, 0)
 
+	pivot = Node3D.new()
+	pivot.position = Vector3(0, tile_size * 0.5, 0)
+	player.add_child(pivot)
+
 	var camera = Camera3D.new()
-	camera.position = Vector3(0, tile_size * 2, tile_size * 2)
-	player.add_child(camera)
+	camera.position = Vector3(0, tile_size * 1.5, tile_size * 2)
+	pivot.add_child(camera)
 
 	add_child(player)
 
