@@ -125,11 +125,11 @@ func build_level() -> void:
 			var world_pos = Vector3(x * tile_size, 0, y * tile_size)
 			match symbol:
 				"#":
-					spawn_3d_wall(world_pos)
+					spawn_wall(world_pos)
 				".":
-					spawn_3d_floor(world_pos)
+					spawn_floor(world_pos)
 				"P":
-					spawn_3d_floor(world_pos)
+					spawn_floor(world_pos)
 					spawn_player(world_pos)
 
 func spawn_3d_floor(pos: Vector3) -> void:
@@ -140,7 +140,7 @@ func spawn_3d_floor(pos: Vector3) -> void:
 	mesh_instance.position = pos
 	add_child(mesh_instance)
 
-func spawn_3d_wall(pos: Vector3) -> void:
+func spawn_wall(pos: Vector3) -> void:
 	var body = StaticBody3D.new()
 	var collision = CollisionShape3D.new()
 	var shape = BoxShape3D.new()
@@ -148,15 +148,15 @@ func spawn_3d_wall(pos: Vector3) -> void:
 	collision.shape = shape
 	body.position = pos + Vector3(0, tile_size * 0.5, 0)
 	body.add_child(collision)
-
-	var mesh_instance = MeshInstance3D.new()
-	var mesh = BoxMesh.new()
-	mesh.size = Vector3(tile_size, tile_size, tile_size)
-	mesh_instance.mesh = mesh
-	mesh_instance.position = pos + Vector3(0, tile_size * 0.5, 0)
-	body.add_child(mesh_instance)
-
 	add_child(body)
+
+func spawn_floor(pos: Vector3) -> void:
+	var mesh_instance = MeshInstance3D.new()
+	var mesh = PlaneMesh.new()
+	mesh.size = Vector2(tile_size, tile_size)
+	mesh_instance.mesh = mesh
+	mesh_instance.position = pos
+	add_child(mesh_instance)
 
 func spawn_player(pos: Vector3) -> void:
 	player = CharacterBody3D.new()
