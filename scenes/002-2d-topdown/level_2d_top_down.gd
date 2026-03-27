@@ -9,6 +9,13 @@ var file_dialog : FileDialog
 var canvas_layer : CanvasLayer
 var build_service : BuildLevel
 
+enum RenderMode {
+	NORMAL,
+	ISOMETRIC
+}
+
+var render_mode: RenderMode = RenderMode.NORMAL
+
 func _ready():
 	if level_path == "" or level_path == null:
 		level_path = DEFAULT_LEVEL
@@ -35,11 +42,37 @@ func _ready():
 func _input(event):
 	if event is InputEventKey and event.keycode == KEY_L and event.pressed:
 		file_dialog.popup()
+	if event is InputEventKey and event.keycode == KEY_M and event.pressed:
+			toggle_render_mode()
 
 func _on_file_selected(path):
 	clear_level()
 	load_level(path)
 
+func create_renderer():
+	match render_mode:
+		RenderMode.NORMAL:
+			return LevelRenderer2D.new()
+		RenderMode.ISOMETRIC:
+			return LevelRenderer2DIsometric.new()
+
+func build_current_level():
+	clear_level()
+
+	var parser = LevelParser.new()
+	var renderer = create_renderer()
+
+	build_service = BuildLevel.new(parser, renderer)
+	player = build_service.execute(grid, self, tile_size)
+
+func toggle_render_mode():
+	if render_mode == RenderMode.NORMAL:
+		render_mode = RenderMode.ISOMETRIC
+	else:
+		render_mode = RenderMode.NORMAL
+
+	build_current_level()
+	
 func clear_level():
 	for child in get_children():
 		if child != file_dialog and child != canvas_layer:
@@ -62,12 +95,9 @@ func load_level(path: String) -> bool:
 		grid.append(file.get_line())
 
 	file.close()
-	var parser = LevelParser.new()
-	var renderer = LevelRenderer2D.new()
 
-	build_service = BuildLevel.new(parser, renderer)
+	build_current_level()  # 👈 clave
 
-	player = build_service.execute(grid, self, tile_size)
 	return true
 
 func _process(delta):

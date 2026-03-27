@@ -4,19 +4,24 @@ func render(model: LevelModel, parent: Node, tile_size: int) -> CharacterBody2D:
 	var player : CharacterBody2D = null
 
 	for tile in model.tiles:
-		var pos = Vector2(tile["x"], tile["y"]) * tile_size
+		var world_pos = to_world(Vector2i(tile["x"], tile["y"]), tile_size)
 
 		match tile["type"]:
 			"wall":
-				spawn_wall(parent, pos, tile_size)
+				spawn_wall(parent, world_pos, tile_size)
 			"floor":
-				spawn_floor(parent, pos, tile_size)
+				spawn_floor(parent, world_pos, tile_size)
 
 	if model.player_spawn != null:
-		var world_pos = Vector2(model.player_spawn) * tile_size
+		var world_pos = to_world(model.player_spawn, tile_size)
 		player = spawn_player(parent, world_pos, tile_size)
 
 	return player
+
+
+
+func to_world(grid_pos: Vector2i, tile_size: int) -> Vector2:
+	return Vector2(grid_pos) * tile_size
 
 func spawn_wall(parent, pos, tile_size):
 	var body = StaticBody2D.new()
