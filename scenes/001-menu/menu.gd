@@ -2,6 +2,13 @@ extends Control
 
 const SCENES_ROOT = "res://scenes"
 const PROGRESS_FILE = "user://progress.cfg"
+const FALLBACK_SCENES = [
+	"res://scenes/001-menu/menu.tscn",
+	"res://scenes/002-2d-topdown/Level2DTopDown.tscn",
+	"res://scenes/003-2d-isometric/2d-isometric.tscn",
+	"res://scenes/004-3d/3d.tscn",
+	"res://scenes/005-3d-tilted/3d_tilted.tscn",
+]
 
 var all_scenes : Array = []
 var max_unlocked : int = 0
@@ -45,8 +52,10 @@ func _ready() -> void:
 
 	all_scenes = _find_all_scene_files(SCENES_ROOT)
 	if all_scenes.is_empty():
-		title.text = "No hay escenas encontradas en scenes/."
-		return
+		all_scenes = _fallback_scene_list()
+		if all_scenes.is_empty():
+			title.text = "No hay escenas encontradas en scenes/."
+			return
 
 	all_scenes = _sort_scene_path_list(all_scenes)
 	# Modo vista de camino estático: no desbloqueos necesarios
@@ -98,11 +107,20 @@ func _extract_order_key(name: String) -> int:
 		return 9999
 	return digits.to_int()
 
+func _fallback_scene_list() -> Array:
+	var result: Array = []
+	for p in FALLBACK_SCENES:
+		if ResourceLoader.exists(p):
+			result.append(p)
+		else:
+			print("FALLBACK no existe:", p)
+	return result
+
 func _friendly_scene_name(scene_path: String) -> String:
 	var name = scene_path.get_file().get_basename()
 	var i = 0
-	while i < name.length() and name[i] >= "0" and name[i] <= "9":
-		i += 1
+	#while i < name.length() and name[i] >= "0" and name[i] <= "9":
+	#	i += 1
 	if i < name.length() and name[i] in ["-", "_", ".", " "]:
 		name = name.substr(i + 1, name.length())
 	elif i > 0:
@@ -138,6 +156,7 @@ func _render_steps_list() -> void:
 		var scene_path = all_scenes[i]
 		var button = Button.new()
 		button.text = "%d. %s" % [i + 1, _friendly_scene_name(scene_path)]
+		
 		button.toggle_mode = false
 		button.disabled = false  # siempre navegable
 		var cb = Callable(self, "_on_scene_button_pressed").bind(scene_path, i)

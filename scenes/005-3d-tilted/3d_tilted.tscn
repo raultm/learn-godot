@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://c5xn7k3a0pr1"]
+
+[ext_resource type="Script" path="res://scenes/005-3d-tilted/3d_tilted.gd" id="1"]
+
+[node name="3DTilted" type="Node3D"]
+script = ExtResource("1")
+level_path = "res://levels/level_01.txt"
+tile_size = 1.0
+camera_height = 8.0
+camera_angle = 45.0
